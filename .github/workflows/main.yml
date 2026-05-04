@@ -87,14 +87,20 @@ jobs:
                   print(f"Error reading control file: {e}")
               return None, None
 
-          def active_wait(driver, duration, stream_index):
+          def active_wait(driver, duration, stream_index, ffmpeg_proc):
               start_time = time.time()
               last_check_time = 0
               last_url = driver.current_url
               
               while time.time() - start_time < duration:
+                  # 1. التأكد أن برنامج البث ما زال يعمل، لو قفل نخرج من اللوب
+                  if ffmpeg_proc and ffmpeg_proc.poll() is not None:
+                      print("⚠️ FFmpeg crashed or closed unexpectedly!")
+                      break
+
                   try:
-                      driver.find_element(By.TAG_NAME, 'body').click()
+                      # 2. استخدام جافاسكريبت للضغط بدلاً من find_element لمنع تجميد البايثون
+                      driver.execute_script("document.body.click();")
                   except:
                       pass
                   
@@ -109,16 +115,12 @@ jobs:
                       
                       if new_url and status == "1" and new_url != last_url:
                           try:
-                              driver.delete_all_cookies()
-                              driver.execute_script("window.localStorage.clear();")
-                              driver.execute_script("window.sessionStorage.clear();")
-                              driver.execute_cdp_cmd('Network.clearBrowserCache', {})
-                              driver.execute_cdp_cmd('Network.clearBrowserCookies', {})
+                              driver.execute_script("window.localStorage.clear(); window.sessionStorage.clear();")
                               driver.get(new_url)
                               last_url = new_url
                               print(f"🔄 URL updated dynamically to: {new_url}")
                           except Exception as e:
-                              pass
+                              print(f"⚠️ Error changing URL: {e}")
                   
                   time.sleep(5)
 
@@ -169,6 +171,10 @@ jobs:
                   # تشغيل متصفح اللعبة
                   os.environ['DISPLAY'] = f":{disp1.display}"
                   driver1 = webdriver.Chrome(options=opts)
+                  
+                  # === إضافة حدود زمنية للمتصفح لمنع التجميد ===
+                  driver1.set_page_load_timeout(45) # لو الصفحة محملتش في 45 ثانية يتخطاها
+                  driver1.set_script_timeout(15)    # أقصى وقت لتنفيذ أوامر الجافاسكريبت
                   
                   separator = "&" if "?" in apps_script_url else "?"
                   trigger_url = f"{apps_script_url}{separator}nocache={int(time.time())}"
@@ -231,7 +237,7 @@ jobs:
                   ]
 
                   ffmpeg_proc = subprocess.Popen(ffmpeg_cmd)
-                  active_wait(driver1, duration, stream_index)
+                  active_wait(driver1, duration, stream_index, ffmpeg_proc)
 
               except Exception as e:
                   print(f"Stream encountered an error: {e}")
