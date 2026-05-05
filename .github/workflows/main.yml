@@ -38,17 +38,8 @@ jobs:
 
       - name: System Setup
         run: |
-          # 1. تغيير سيرفر التحميل المعلق من Azure لسيرفر أوبونتو الرئيسي
-          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list || true
-          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources || true
-          
-          # 2. تنظيف الكاش وتحديث الروابط
-          sudo apt-get clean
-          sudo apt-get update -y
-          
-          # 3. التثبيت مع تحديد وقت أقصى للتحميل (15 ثانية) لمنع التعليق
-          DEBIAN_FRONTEND=noninteractive sudo apt-get -o Acquire::http::Timeout="15" install -y --fix-missing xvfb ffmpeg pulseaudio unclutter
-          
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb ffmpeg pulseaudio google-chrome-stable unclutter > /dev/null
           pulseaudio -D --exit-idle-time=-1 --disallow-exit || true
           pactl load-module module-null-sink sink_name=Sink1
 
@@ -153,12 +144,8 @@ jobs:
 
               try:
                   opts = Options()
-                  # إضافة User-Agent لمتصفح حقيقي لمنع الحظر
-                  opts.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
                   opts.add_argument('--no-sandbox')
                   opts.add_argument('--disable-dev-shm-usage')
-                  opts.add_argument('--headless=new')
-                  opts.add_argument('--window-size=720,1280')
                   opts.add_argument('--autoplay-policy=no-user-gesture-required')
                   opts.add_argument('--disable-notifications')
                   opts.add_argument('--disable-infobars')
