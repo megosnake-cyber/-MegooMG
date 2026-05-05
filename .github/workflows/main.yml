@@ -38,19 +38,19 @@ jobs:
 
       - name: System Setup
         run: |
-          echo "1. Stopping background updates..."
-          sudo systemctl stop apt-daily.timer || true
-          sudo systemctl stop apt-daily-upgrade.timer || true
-          sudo systemctl stop unattended-upgrades.service || true
-          sudo killall apt apt-get || true
+          echo "1. Forcing Ubuntu Main Servers instead of Azure Mirrors..."
+          # استبدال جميع سيرفرات Azure بسيرفرات أوبونتو الرئيسية بقوة
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
           
-          echo "2. Changing mirrors to fix slow download speeds..."
-          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list || true
-          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources || true
+          # تأكيد إزالة أي ملفات Mirror إضافية قد تسبب المشكلة
+          sudo rm -f /etc/apt/apt-mirrors.txt
+          sudo rm -f /etc/apt/sources.list.d/ubuntu.sources
           
-          echo "3. Updating and Installing..."
-          sudo apt-get clean
+          echo "2. Updating Repositories..."
           sudo apt-get update -y
+          
+          echo "3. Installing Packages..."
           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends xvfb ffmpeg pulseaudio unclutter
           
           echo "4. Setting up Audio..."
