@@ -38,13 +38,26 @@ jobs:
 
       - name: System Setup
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq xvfb ffmpeg pulseaudio google-chrome-stable unclutter > /dev/null
+          echo "1. Stopping background updates..."
+          sudo systemctl stop apt-daily.timer || true
+          sudo systemctl stop apt-daily-upgrade.timer || true
+          sudo systemctl stop unattended-upgrades.service || true
+          sudo killall apt apt-get || true
+          
+          echo "2. Changing mirrors to fix slow download speeds..."
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list || true
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources || true
+          
+          echo "3. Updating and Installing..."
+          sudo apt-get clean
+          sudo apt-get update -y
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends xvfb ffmpeg pulseaudio unclutter
+          
+          echo "4. Setting up Audio..."
           pulseaudio -D --exit-idle-time=-1 --disallow-exit || true
           pactl load-module module-null-sink sink_name=Sink1
 
       - name: Python Setup
-        # تم إضافة تحديث للمكتبات لمنع ظهور التحذير المزعج
         run: pip install -U urllib3 chardet requests selenium pyvirtualdisplay
 
       - name: Create Python Script
@@ -52,7 +65,7 @@ jobs:
           cat << 'EOF' > main.py
           import os, subprocess, time, requests, signal, random, urllib.parse, sys
           import warnings
-          warnings.filterwarnings("ignore") # لإخفاء أي تحذيرات غير هامة
+          warnings.filterwarnings("ignore")
           
           from pyvirtualdisplay import Display
           from selenium import webdriver
@@ -212,7 +225,7 @@ jobs:
                       '-c:v', 'libx264',
                       '-preset', 'ultrafast',
                       '-tune', 'zerolatency',
-                      '-vsync', '1', # <-- التعديل هنا: استخدام الأمر المتوافق بدلاً من fps_mode
+                      '-vsync', '1',
                       '-b:v', '3000k',
                       '-maxrate', '3000k',
                       '-bufsize', '6000k',
