@@ -13,7 +13,8 @@ env:
 
 jobs:
   stream:
-    runs-on: ubuntu-latest
+    # التغيير الجذري هنا: استخدام 22.04 بدلاً من latest البطيئة
+    runs-on: ubuntu-22.04
     timeout-minutes: 360
     permissions:
       actions: write
@@ -38,8 +39,13 @@ jobs:
 
       - name: System Setup
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq xvfb ffmpeg pulseaudio google-chrome-stable unclutter > /dev/null
+          # تحديث سريع للمستودعات
+          sudo apt-get update -yq
+          
+          # تثبيت الأدوات فقط (بدون تحديث الحزم الأخرى لتوفير الوقت)
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -yq --no-install-recommends xvfb ffmpeg pulseaudio unclutter
+          
+          # إعداد الصوت الوهمي
           pulseaudio -D --exit-idle-time=-1 --disallow-exit || true
           pactl load-module module-null-sink sink_name=Sink1
 
@@ -144,8 +150,12 @@ jobs:
 
               try:
                   opts = Options()
+                  # إضافة User-Agent لمتصفح حقيقي لمنع الحظر
+                  opts.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
                   opts.add_argument('--no-sandbox')
                   opts.add_argument('--disable-dev-shm-usage')
+                  opts.add_argument('--headless=new')
+                  opts.add_argument('--window-size=720,1280')
                   opts.add_argument('--autoplay-policy=no-user-gesture-required')
                   opts.add_argument('--disable-notifications')
                   opts.add_argument('--disable-infobars')
