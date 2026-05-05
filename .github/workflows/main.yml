@@ -38,8 +38,17 @@ jobs:
 
       - name: System Setup
         run: |
+          # 1. تغيير سيرفر التحميل المعلق من Azure لسيرفر أوبونتو الرئيسي
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list || true
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list.d/ubuntu.sources || true
+          
+          # 2. تنظيف الكاش وتحديث الروابط
+          sudo apt-get clean
           sudo apt-get update -y
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y xvfb ffmpeg pulseaudio unclutter
+          
+          # 3. التثبيت مع تحديد وقت أقصى للتحميل (15 ثانية) لمنع التعليق
+          DEBIAN_FRONTEND=noninteractive sudo apt-get -o Acquire::http::Timeout="15" install -y --fix-missing xvfb ffmpeg pulseaudio unclutter
+          
           pulseaudio -D --exit-idle-time=-1 --disallow-exit || true
           pactl load-module module-null-sink sink_name=Sink1
 
