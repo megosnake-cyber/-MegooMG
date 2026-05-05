@@ -44,12 +44,16 @@ jobs:
           pactl load-module module-null-sink sink_name=Sink1
 
       - name: Python Setup
-        run: pip install selenium pyvirtualdisplay requests
+        # تم إضافة تحديث للمكتبات لمنع ظهور التحذير المزعج
+        run: pip install -U urllib3 chardet requests selenium pyvirtualdisplay
 
       - name: Create Python Script
         run: |
           cat << 'EOF' > main.py
           import os, subprocess, time, requests, signal, random, urllib.parse, sys
+          import warnings
+          warnings.filterwarnings("ignore") # لإخفاء أي تحذيرات غير هامة
+          
           from pyvirtualdisplay import Display
           from selenium import webdriver
           from selenium.webdriver.chrome.options import Options
@@ -208,7 +212,7 @@ jobs:
                       '-c:v', 'libx264',
                       '-preset', 'ultrafast',
                       '-tune', 'zerolatency',
-                      '-fps_mode', 'cfr',
+                      '-vsync', '1', # <-- التعديل هنا: استخدام الأمر المتوافق بدلاً من fps_mode
                       '-b:v', '3000k',
                       '-maxrate', '3000k',
                       '-bufsize', '6000k',
