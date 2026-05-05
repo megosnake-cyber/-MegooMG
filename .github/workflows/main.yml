@@ -38,14 +38,12 @@ jobs:
 
       - name: System Setup
         run: |
-          echo "1. Forcing Ubuntu Main Servers instead of Azure Mirrors..."
-          # استبدال جميع سيرفرات Azure بسيرفرات أوبونتو الرئيسية بقوة
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
-          
-          # تأكيد إزالة أي ملفات Mirror إضافية قد تسبب المشكلة
-          sudo rm -f /etc/apt/apt-mirrors.txt
-          sudo rm -f /etc/apt/sources.list.d/ubuntu.sources
+          echo "1. Fixing Mirror Links..."
+          # بدلاً من حذف الملف، سنقوم بكتابة الرابط السريع بداخله ليعمل النظام بدون مشاكل
+          if [ -f /etc/apt/apt-mirrors.txt ]; then
+            echo "http://archive.ubuntu.com/ubuntu/" | sudo tee /etc/apt/apt-mirrors.txt
+          fi
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/g' /etc/apt/sources.list || true
           
           echo "2. Updating Repositories..."
           sudo apt-get update -y
