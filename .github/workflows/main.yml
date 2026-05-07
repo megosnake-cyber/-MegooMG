@@ -156,6 +156,7 @@ jobs:
               print(f"🎯 Target Stream Duration: {duration} seconds ({duration/3600:.2f} hours).")
 
               try:
+                  # إعدادات Chrome لتقليل استهلاك المعالج لأقصى درجة
                   opts = Options()
                   opts.add_argument('--no-sandbox')
                   opts.add_argument('--disable-dev-shm-usage')
@@ -165,9 +166,10 @@ jobs:
                   opts.add_argument('--disable-extensions')
                   opts.add_argument('--disable-popup-blocking')
                   opts.add_argument('--disable-features=TranslateUI')
-                  opts.add_argument('--disable-gpu')
+                  opts.add_argument('--disable-gpu') # الأهم لتقليل الضغط
                   opts.add_argument('--disable-software-rasterizer')
-                  opts.add_argument('--disable-gpu-compositing')
+                  opts.add_argument('--memory-pressure-off')
+                  opts.add_argument('--disable-background-timer-throttling')
                   
                   opts.add_experimental_option("excludeSwitches", ["enable-automation"])
                   opts.add_experimental_option('useAutomationExtension', False)
@@ -206,27 +208,34 @@ jobs:
                   fan_env['PULSE_SINK'] = sink_name
                   fan_process = subprocess.Popen(fan_cmd, env=fan_env)
 
-                  # التسجيل المباشر للشاشة بدقة 720x1280
+                  # التسجيل المباشر للشاشة مع تعديلات الـ Buffer والـ 60 فريم المحسنة
                   ffmpeg_cmd = [
                       'ffmpeg', '-y',
                       '-nostats', '-loglevel', 'error',
-                      '-thread_queue_size', '512',
+                      '-thread_queue_size', '1024', # بفر أقوى للمدخلات
                       '-f', 'x11grab',
+                      '-draw_mouse', '0',           # إخفاء الماوس لتقليل الرندر
                       '-framerate', '60',
                       '-video_size', '720x1280',
                       '-i', f":{disp1.display}",
-                      '-thread_queue_size', '512',
+                      '-thread_queue_size', '1024', # بفر أقوى للصوت
                       '-f', 'pulse',
                       '-i', f"{sink_name}.monitor",
                       '-map', '0:v',
                       '-map', '1:a',
+                      
+                      # الفلتر السحري لتنعيم الفريمات وتعويض النقص
+                      '-vf', 'fps=fps=60:round=near',
+                      
                       '-c:v', 'libx264',
                       '-preset', 'ultrafast',
                       '-tune', 'zerolatency',
-                      '-vsync', '1',
-                      '-b:v', '3000k',
-                      '-maxrate', '3000k',
-                      '-bufsize', '6000k',
+                      '-x264-params', 'threads=2:sliced-threads=1', # تنظيم استخدام المعالج
+                      '-max_muxing_queue_size', '1024',             # بفر للمخرجات لمنع السقوط
+                      
+                      '-b:v', '2500k',    # بت ريت مناسب للـ 60 فريم ولا يقتل المعالج
+                      '-maxrate', '2500k',
+                      '-bufsize', '5000k',
                       '-r', '60',
                       '-g', '120',
                       '-keyint_min', '120',
