@@ -208,7 +208,7 @@ jobs:
                   fan_env['PULSE_SINK'] = sink_name
                   fan_process = subprocess.Popen(fan_cmd, env=fan_env)
 
-                  # التسجيل المباشر للشاشة مع تعديلات الـ Buffer والـ 60 فريم المحسنة
+                  # التسجيل المباشر للشاشة مع تعديلات الـ Buffer والـ 60 فريم المحسنة وتظليل أسفل الشاشة
                   ffmpeg_cmd = [
                       'ffmpeg', '-y',
                       '-nostats', '-loglevel', 'error',
@@ -224,8 +224,8 @@ jobs:
                       '-map', '0:v',
                       '-map', '1:a',
                       
-                      # الفلتر السحري لتنعيم الفريمات وتعويض النقص
-                      '-vf', 'fps=fps=60:round=near',
+                      # فلتر دمج لتثبيت الـ 60 فريم ورسم مستطيل أسود أسفل الشاشة يغطي 10٪ (128 بكسل)
+                      '-vf', 'fps=60,drawbox=x=0:y=1152:w=720:h=128:color=black:t=fill',
                       
                       '-c:v', 'libx264',
                       '-preset', 'ultrafast',
@@ -233,9 +233,9 @@ jobs:
                       '-x264-params', 'threads=2:sliced-threads=1', # تنظيم استخدام المعالج
                       '-max_muxing_queue_size', '1024',             # بفر للمخرجات لمنع السقوط
                       
-                      '-b:v', '2500k',    # بت ريت مناسب للـ 60 فريم ولا يقتل المعالج
-                      '-maxrate', '2500k',
-                      '-bufsize', '5000k',
+                      '-b:v', '3000k',    # سرعة رفع 3000 ثابتة
+                      '-maxrate', '3000k',
+                      '-bufsize', '6000k', # بفر مضاعف لضمان استقرار البت ريت
                       '-r', '60',
                       '-g', '120',
                       '-keyint_min', '120',
