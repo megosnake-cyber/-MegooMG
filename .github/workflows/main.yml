@@ -181,7 +181,7 @@ jobs:
                   # تشغيل متصفح اللعبة
                   os.environ['DISPLAY'] = f":{disp1.display}"
                   driver1 = webdriver.Chrome(options=opts)
-                  driver1.set_window_size(720, 1280)
+               
                   
                   separator = "&" if "?" in apps_script_url else "?"
                   trigger_url = f"{apps_script_url}{separator}nocache={int(time.time())}"
