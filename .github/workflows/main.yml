@@ -226,7 +226,7 @@ jobs:
                       
                       '-filter_complex', 
                       "[0:v]drawbox=x=0:y=1152:w=720:h=128:color=black:t=fill,fifo,tpad=start_duration=20:color=black,realtime,setpts=N/FRAME_RATE/TB[delayed_v]; "
-                      "[1:a]adelay=30000|30000[delayed_a]; "
+                      "[1:a]adelay=25000|25000[delayed_a]; "
                       "[delayed_a][2:a]amix=inputs=2:duration=longest[mixed_a]",
                       
                       '-map', '[delayed_v]',
