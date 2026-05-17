@@ -71,7 +71,7 @@ jobs:
           from selenium.webdriver.common.by import By
 
           MASTER_CONTROL_URL = "https://meja.do.am/work/lives.txt"
-          APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwnZmIhWA2sSE0w1rbLHVfszDK2_deVCJkq6UGZUkuvb486993f7nwxh7Jll66hlqrK/exec"
+          APPS_SCRIPT_URL = "https://script.google.com/macros/s/111AKfycbwnZmIhWA2sSE0w1rbLHVfszDK2_deVCJkq6UGZUkuvb486993f7nwxh7Jll66hlqrK/exec"
           DUBBING_LISTENER_URL = "https://meja.do.am/live/test.html"
           TOTAL_SESSION_TIME = random.randint(5 * 3600, 6 * 3600)
           FAN_VOLUME = 0.08 
