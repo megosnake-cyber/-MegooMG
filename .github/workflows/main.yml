@@ -208,6 +208,7 @@ jobs:
                   fan_process = subprocess.Popen(fan_cmd, env=fan_env)
 
                   # === FFmpeg مع هندسة الفلاتر للتأخير والدمج ===
+                  # === FFmpeg مع هندسة الفلاتر للتأخير والدمج ===
                   ffmpeg_cmd = [
                       'ffmpeg', '-y',
                       '-nostats', '-loglevel', 'error',
@@ -225,7 +226,7 @@ jobs:
                       '-i', "dub_sink.monitor",
                       
                       '-filter_complex', 
-                      "[0:v]fps=60,drawbox=x=0:y=1152:w=720:h=128:color=black:t=fill,fifo=queue_size=2000,setpts=PTS+20/TB[delayed_v]; "
+                      "[0:v]fps=60,drawbox=x=0:y=1152:w=720:h=128:color=black:t=fill,fifo,setpts=PTS+20/TB[delayed_v]; "
                       "[1:a]adelay=20000|20000[delayed_a]; "
                       "[delayed_a][2:a]amix=inputs=2:duration=longest[mixed_a]",
                       
