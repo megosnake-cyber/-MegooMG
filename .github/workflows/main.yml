@@ -207,26 +207,27 @@ jobs:
                   fan_env['PULSE_SINK'] = "game_sink"
                   fan_process = subprocess.Popen(fan_cmd, env=fan_env)
 
-                 # === FFmpeg مع هندسة الفلاتر للتأخير والدمج ===
+                 # === التسجيل المباشر للشاشة مع تعديلات الـ Buffer والـ 60 فريم المحسنة وتظليل أسفل الشاشة + إضافة التأخير والدمج ===
                   ffmpeg_cmd = [
                       'ffmpeg', '-y',
                       '-nostats', '-loglevel', 'error',
-                      '-thread_queue_size', '2048',
+                      '-thread_queue_size', '1024', # بفر أقوى للمدخلات
                       '-f', 'x11grab',
-                      '-draw_mouse', '0',
+                      '-draw_mouse', '0',           # إخفاء الماوس لتقليل الرندر
                       '-framerate', '60',
                       '-video_size', '720x1280',
                       '-i', f":{disp1.display}",
-                      '-thread_queue_size', '2048',
+                      '-thread_queue_size', '1024', # بفر أقوى للصوت الأول (صوت اللعبة)
                       '-f', 'pulse',
                       '-i', "game_sink.monitor",
-                      '-thread_queue_size', '2048',
+                      '-thread_queue_size', '1024', # بفر أقوى للصوت الثاني (الدبلجة)
                       '-f', 'pulse',
                       '-i', "dub_sink.monitor",
                       
+                      # فلتر دمج لتثبيت الـ 60 فريم ورسم مستطيل أسود أسفل الشاشة وتأخير 30 ثانية ودمج الصوت
                       '-filter_complex', 
-                      "[0:v]drawbox=x=0:y=1152:w=720:h=128:color=black:t=fill,fifo,tpad=start_duration=20:color=black,realtime,setpts=N/FRAME_RATE/TB[delayed_v]; "
-                      "[1:a]adelay=25000|25000[delayed_a]; "
+                      "[0:v]fps=60,drawbox=x=0:y=1152:w=720:h=128:color=black:t=fill,fifo,tpad=start_duration=30:color=black,setpts=N/FRAME_RATE/TB[delayed_v]; "
+                      "[1:a]adelay=30000|30000,aresample=async=1[delayed_a]; "
                       "[delayed_a][2:a]amix=inputs=2:duration=longest[mixed_a]",
                       
                       '-map', '[delayed_v]',
@@ -235,11 +236,13 @@ jobs:
                       '-c:v', 'libx264',
                       '-preset', 'ultrafast',
                       '-tune', 'zerolatency',
-                      '-x264-params', 'threads=2:sliced-threads=1',
-                      '-max_muxing_queue_size', '2048',
-                      '-b:v', '3000k',
+                      '-x264-params', 'threads=2:sliced-threads=1:nal-hrd=cbr', # تنظيم استخدام المعالج
+                      '-max_muxing_queue_size', '1024',              # بفر للمخرجات لمنع السقوط
+                      
+                      '-b:v', '3000k',    # سرعة رفع 3000 ثابتة
                       '-maxrate', '3000k',
-                      '-bufsize', '6000k',
+                      '-minrate', '3000k', # مطلوب لمنع يوتيوب من إظهار تحذير التقطيع أثناء الـ 30 ثانية الأولى
+                      '-bufsize', '6000k', # بفر مضاعف لضمان استقرار البت ريت
                       '-r', '60',
                       '-g', '120',
                       '-keyint_min', '120',
