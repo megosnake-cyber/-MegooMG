@@ -208,7 +208,7 @@ jobs:
                   fan_process = subprocess.Popen(fan_cmd, env=fan_env)
 
                   # === FFmpeg مع هندسة الفلاتر للتأخير والدمج ===
-                  # === FFmpeg مع هندسة الفلاتر للتأخير والدمج ===
+                 # === FFmpeg مع هندسة الفلاتر للتأخير والدمج ===
                   ffmpeg_cmd = [
                       'ffmpeg', '-y',
                       '-nostats', '-loglevel', 'error',
@@ -226,7 +226,7 @@ jobs:
                       '-i', "dub_sink.monitor",
                       
                       '-filter_complex', 
-                      "[0:v]fps=60,drawbox=x=0:y=1152:w=720:h=128:color=black:t=fill,fifo,setpts=PTS+20/TB[delayed_v]; "
+                      "[0:v]fps=60,drawbox=x=0:y=1152:w=720:h=128:color=black:t=fill,fifo,tpad=start_duration=20:color=black[delayed_v]; "
                       "[1:a]adelay=20000|20000[delayed_a]; "
                       "[delayed_a][2:a]amix=inputs=2:duration=longest[mixed_a]",
                       
@@ -236,10 +236,11 @@ jobs:
                       '-c:v', 'libx264',
                       '-preset', 'ultrafast',
                       '-tune', 'zerolatency',
-                      '-x264-params', 'threads=2:sliced-threads=1',
+                      '-x264-params', 'threads=2:sliced-threads=1:nal-hrd=cbr',
                       '-max_muxing_queue_size', '1024',
                       '-b:v', '3000k',
                       '-maxrate', '3000k',
+                      '-minrate', '3000k', # إجبار يوتيوب على قراءة البت ريت كاملاً
                       '-bufsize', '6000k',
                       '-r', '60',
                       '-g', '120',
@@ -251,7 +252,7 @@ jobs:
                       '-f', 'flv',
                       f"rtmp://a.rtmp.youtube.com/live2/{youtube_key}"
                   ]
-
+                  
                   ffmpeg_proc = subprocess.Popen(ffmpeg_cmd)
                   active_wait(driver1, driver_dub, duration, stream_index)
 
