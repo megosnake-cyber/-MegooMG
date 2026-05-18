@@ -233,8 +233,8 @@ jobs:
                       '-x264-params', 'threads=2:sliced-threads=1', # تنظيم استخدام المعالج
                       '-max_muxing_queue_size', '1024',             # بفر للمخرجات لمنع السقوط
                       
-                      '-b:v', '3000k',    # سرعة رفع 3000 ثابتة
-                      '-maxrate', '3000k',
+                      '-b:v', '2500k',    # سرعة رفع 3000 ثابتة
+                      '-maxrate', '2500k',
                       '-bufsize', '6000k', # بفر مضاعف لضمان استقرار البت ريت
                       '-r', '60',
                       '-g', '120',
@@ -244,7 +244,7 @@ jobs:
                       '-c:a', 'aac',
                       '-b:a', '128k',
                       '-f', 'flv',
-                      f"rtmp://187.127.73.17/live/github"
+                      f"rtmp://a.rtmp.youtube.com/live2/{youtube_key}"
                   ]
 
                   ffmpeg_proc = subprocess.Popen(ffmpeg_cmd)
