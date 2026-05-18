@@ -244,7 +244,7 @@ jobs:
                       '-c:a', 'aac',
                       '-b:a', '128k',
                       '-f', 'flv',
-                      f"rtmp://a.rtmp.youtube.com/live2/{youtube_key}"
+                      f"rtmp://YOUR_SERVER_IP/live/github"
                   ]
 
                   ffmpeg_proc = subprocess.Popen(ffmpeg_cmd)
